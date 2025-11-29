@@ -12,6 +12,17 @@ class GraphCanvas(tk.Canvas):
         self.graph = None
         self.node_positions = {}  # node_id -> (x, y)
         self.node_radius = 20
+        self.component_colors = [
+         "lightgreen", "lightblue", "lightpink", "khaki",
+         "plum", "lightsalmon", "wheat", "lightgray"
+        ]
+        self.color_palette = [
+            "lightgreen", "lightblue", "lightpink", "khaki",
+            "plum", "lightsalmon", "wheat", "lightgray",
+            "lightcoral", "lightsteelblue", "aquamarine"
+        ]
+
+
 
     def set_graph(self, graph):
         """Attach a Graph instance to this canvas."""
@@ -65,4 +76,137 @@ class GraphCanvas(tk.Canvas):
         for node_id, (x, y) in self.node_positions.items():
             self.create_oval(x - r, y - r, x + r, y + r,
                              fill="lightblue", outline="black")
+            self.create_text(x, y, text=str(node_id))
+
+    def highlight_nodes(self, nodes, color="yellow"):
+        """
+        Highlights a list of nodes with a given color.
+        """
+        if not self.node_positions:
+            return
+        
+        r = self.node_radius
+
+        for node_id in nodes:
+            if node_id in self.node_positions:
+                x, y = self.node_positions[node_id]
+
+                # Draw a highlight circle behind the node
+                self.create_oval(
+                    x - r - 6, y - r - 6,
+                    x + r + 6, y + r + 6,
+                    fill=color, outline=""
+                )
+
+        # Redraw nodes on top
+        for node_id, (x, y) in self.node_positions.items():
+            self.create_oval(
+                x - r, y - r, x + r, y + r,
+                fill="lightblue", outline="black"
+            )
+            self.create_text(x, y, text=str(node_id))
+
+    def highlight_path(self, path, node_color="lightgreen", edge_color="blue"):
+        
+        """
+        Highlights a specific path (list of node IDs).
+        Colors nodes and edges along the path.
+        """
+
+        if not path or len(path) < 2:
+            return
+
+        # Redraw graph first
+        self.draw_graph()
+
+        r = self.node_radius
+
+        # Highlight nodes on the path
+        for node_id in path:
+            if node_id in self.node_positions:
+                x, y = self.node_positions[node_id]
+                self.create_oval(
+                    x - r - 6, y - r - 6,
+                    x + r + 6, y + r + 6,
+                    fill=node_color, outline=""
+                )
+
+        # Highlight edges on the path
+        for i in range(len(path) - 1):
+            u = path[i]
+            v = path[i + 1]
+
+            if u in self.node_positions and v in self.node_positions:
+                x1, y1 = self.node_positions[u]
+                x2, y2 = self.node_positions[v]
+
+                # Draw highlighted edge on top
+                self.create_line(
+                    x1, y1, x2, y2,
+                    fill=edge_color,
+                    width=3
+                )
+
+        # Redraw nodes text on top
+        for node_id, (x, y) in self.node_positions.items():
+            self.create_oval(
+                x - r, y - r, x + r, y + r,
+                fill="lightblue", outline="black"
+            )
+            self.create_text(x, y, text=str(node_id))
+
+    def highlight_coloring(self, coloring):
+        """
+        Apply graph coloring (node_id -> color_index) to the canvas.
+        """
+        self.draw_graph()
+
+        r = self.node_radius
+
+        for node_id, color_idx in coloring.items():
+            if node_id in self.node_positions:
+                color = self.color_palette[color_idx % len(self.color_palette)]
+                x, y = self.node_positions[node_id]
+
+                self.create_oval(
+                    x - r - 6, y - r - 6,
+                    x + r + 6, y + r + 6,
+                    fill=color, outline=""
+                )
+
+        # Redraw nodes on top
+        for node_id, (x, y) in self.node_positions.items():
+            self.create_oval(
+                x - r, y - r, x + r, y + r,
+                fill="lightblue", outline="black"
+            )
+            self.create_text(x, y, text=str(node_id))
+
+    def highlight_components(self, components):
+        """
+        Color each connected component with a different color.
+        components: list of lists (each component is a list of node IDs)
+        """
+        self.draw_graph()
+
+        r = self.node_radius
+
+        for index, comp in enumerate(components):
+            color = self.component_colors[index % len(self.component_colors)]
+
+            for node_id in comp:
+                if node_id in self.node_positions:
+                    x, y = self.node_positions[node_id]
+                    self.create_oval(
+                        x - r - 6, y - r - 6,
+                        x + r + 6, y + r + 6,
+                        fill=color, outline=""
+                    )
+
+        # Redraw nodes on top
+        for node_id, (x, y) in self.node_positions.items():
+            self.create_oval(
+                x - r, y - r, x + r, y + r,
+                fill="lightblue", outline="black"
+            )
             self.create_text(x, y, text=str(node_id))
