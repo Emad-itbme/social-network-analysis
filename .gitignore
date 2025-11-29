@@ -214,3 +214,4 @@ test_dfs.py
 test_dijkstra.py
 test_astar.py
 test_components.py
+test_centrality.py
