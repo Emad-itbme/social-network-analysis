@@ -215,3 +215,4 @@ test_dijkstra.py
 test_astar.py
 test_components.py
 test_centrality.py
+test_coloring_Wp.py
