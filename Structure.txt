@@ -1,0 +1,44 @@
+social-network-analysis/
+│
+├── src/
+│   ├── models/
+│   │   ├── node.py
+│   │   ├── edge.py
+│   │   ├── graph.py
+│   │   └── graph_loader.py
+│   │
+│   ├── algorithms/
+│   │   ├── bfs.py
+│   │   ├── dfs.py
+│   │   ├── dijkstra.py
+│   │   ├── astar.py
+│   │   ├── connected_components.py
+│   │   ├── degree_centrality.py
+│   │   └── welsh_powell.py
+│   │
+│   ├── ui/
+│   │   ├── main_window.py
+│   │   ├── graph_canvas.py
+│   │   ├── controls_panel.py
+│   │   └── app.py
+│   │
+│   └── utils/
+│       ├── json_exporter.py
+│       ├── csv_exporter.py
+│       ├── adjacency_exporter.py
+│       └── performance_timer.py
+│
+├── data/
+│   ├── sample_small.csv
+│   ├── sample_medium.csv
+│   └── graph.json
+│
+├── screenshots/
+│
+├── tests/
+│   ├── test_small_graph.py
+│   └── test_medium_graph.py
+│
+├── README.md
+├── requirements.txt
+└── .gitignore
