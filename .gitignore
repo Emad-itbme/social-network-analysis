@@ -210,3 +210,4 @@ __marimo__/
 # Tests 
 test_graph_basic.py
 test_loader_basic.py
+test_dfs.py
