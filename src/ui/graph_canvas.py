@@ -21,6 +21,9 @@ class GraphCanvas(tk.Canvas):
             "plum", "lightsalmon", "wheat", "lightgray",
             "lightcoral", "lightsteelblue", "aquamarine"
         ]
+        self.bind("<Button-1>", self.on_click)
+        self.click_callback = None
+
 
 
 
@@ -210,3 +213,15 @@ class GraphCanvas(tk.Canvas):
                 fill="lightblue", outline="black"
             )
             self.create_text(x, y, text=str(node_id))
+    def on_click(self, event):
+        """Detect which node was clicked."""
+        x, y = event.x, event.y
+
+        for node_id, (nx, ny) in self.node_positions.items():
+            r = self.node_radius
+            if (x - nx) ** 2 + (y - ny) ** 2 <= r ** 2:
+                if self.click_callback:
+                    self.click_callback(node_id)
+                break
+    def set_click_callback(self, callback):
+        self.click_callback = callback

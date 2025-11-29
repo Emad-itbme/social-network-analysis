@@ -28,6 +28,8 @@ class MainWindow:
         # Canvas for drawing the graph
         self.canvas = GraphCanvas(self.left_frame, width=800, height=600, bg="white")
         self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas.set_click_callback(self.on_node_click)
+
 
         # Controls panel with buttons
         self.controls = ControlsPanel(
@@ -196,3 +198,18 @@ class MainWindow:
             tk.Label(popup, text=f"Node {nid}", font=("Arial", 12)).grid(row=i, column=0, padx=10, pady=5)
             tk.Label(popup, text=str(val), font=("Arial", 12)).grid(row=i, column=1, padx=10, pady=5)
 
+    def on_node_click(self, node_id):
+        node = self.graph.nodes[node_id]
+
+        info = f"""
+Node ID: {node.id}
+Activity: {node.activity}
+Interaction: {node.interaction}
+Connections: {node.connection_count}
+Neighbors: {list(node.neighbors)}
+"""
+
+        popup = tk.Toplevel(self.root)
+        popup.title(f"Node {node_id} Info")
+
+        tk.Label(popup, text=info, font=("Arial", 12), justify=tk.LEFT).pack(padx=10, pady=10)
