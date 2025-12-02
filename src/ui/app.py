@@ -321,7 +321,7 @@ class SocialNetworkUI:
         result = func(*args)
         end = time.perf_counter()
         return result, (end - start)
-    def run_performance_test(self):
+   
         if not self.graph.nodes:
             self.status_label.configure(text="Graph is empty.")
             return
@@ -376,6 +376,65 @@ class SocialNetworkUI:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(report)
             self.status_label.configure(text="Performance report saved.")
+    def run_performance_test(self):
+        if not self.graph.nodes:
+            self.status_label.configure(text="Graph is empty.")
+            return
+
+        results = {}
+
+        start_node = min(self.graph.nodes.keys())
+        end_node = max(self.graph.nodes.keys())
+
+        # BFS
+        _, t_bfs = self.measure_time(bfs, self.graph, start_node)
+        results["BFS"] = t_bfs
+
+        # DFS
+        _, t_dfs = self.measure_time(dfs, self.graph, start_node)
+        results["DFS"] = t_dfs
+
+        # Dijkstra
+        (_, _prev), t_dijkstra = self.measure_time(dijkstra, self.graph, start_node)
+        results["Dijkstra"] = t_dijkstra
+
+        # A*
+        (_, _prev, _), t_astar = self.measure_time(astar, self.graph, start_node, end_node)
+        results["A*"] = t_astar
+
+        # Connected Components
+        _, t_components = self.measure_time(connected_components, self.graph)
+        results["Connected Components"] = t_components
+
+        # Coloring
+        _, t_color = self.measure_time(welsh_powell, self.graph)
+        results["Graph Coloring"] = t_color
+
+        # Format report text
+        report_lines = ["Performance Report (seconds):\n"]
+        for key, value in results.items():
+            report_lines.append(f"{key:<22} : {value:.6f}")
+        content = "\n".join(report_lines)
+
+        # Ask user what to do
+        choice = self.ask_export_action("Performance Test")
+
+        if choice == "show":
+            self.show_text_popup("Performance Report", content)
+
+        elif choice == "save":
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt")],
+                title="Save Performance Report"
+            )
+            if file_path:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                self.status_label.configure(text="Performance report saved.")
+
+        else:
+            self.status_label.configure(text="Action cancelled.")
 
     # =================================================================
     # Sidebar
