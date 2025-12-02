@@ -3,6 +3,10 @@ import sys
 import math
 import tkinter as tk
 import customtkinter as ctk
+import json
+from tkinter import filedialog
+import time
+
 
 
 # -------------------------------------------------
@@ -37,7 +41,7 @@ class SocialNetworkUI:
         self.selected_node = None
 
         # ----- main layout -----
-        self.root.title("Social Network Analysis - Modern UI")
+        self.root.title("Social Network Analysis")
         self.root.geometry("1400x800")
 
         self.main_frame = ctk.CTkFrame(root, corner_radius=0)
@@ -167,7 +171,6 @@ class SocialNetworkUI:
 
         self.status_label.configure(text=f"Deleted person {nid}.")
 
-
     def delete_edge(self, u, v):
       key = frozenset({u, v})
 
@@ -192,7 +195,187 @@ class SocialNetworkUI:
       self.graph.edges = cleaned
 
       self.status_label.configure(text=f"Deleted connection between {u} and {v}.")
+    def show_text_popup(self, title, content):
+        popup = ctk.CTkToplevel(self.root)
+        popup.title(title)
+        popup.geometry("500x600")
+        popup.grab_set()
 
+        text_box = ctk.CTkTextbox(popup, wrap="none")
+        text_box.pack(fill="both", expand=True, padx=10, pady=10)
+
+        text_box.insert("1.0", content)
+        text_box.configure(state="disabled")
+    def export_adjacency_list(self):
+        if not self.graph.nodes:
+            self.status_label.configure(text="Graph is empty.")
+            return
+
+        # Create adjacency list text
+        lines = []
+        for nid in sorted(self.graph.nodes.keys()):
+            neighbors = sorted(self.graph.get_neighbors(nid))
+            line = f"{nid}: {', '.join(map(str, neighbors)) or 'None'}"
+            lines.append(line)
+
+        content = "\n".join(lines)
+
+        # Ask the user what they want to do
+        choice = self.ask_export_action("Adjacency List")
+
+        if choice == "show":
+            self.show_text_popup("Adjacency List", content)
+        elif choice == "save":
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Save adjacency list"
+            )
+            if file_path:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                self.status_label.configure(text=f"Adjacency list saved to {file_path}")
+        else:
+            # Cancel
+            self.status_label.configure(text="Action cancelled.")
+    def export_adjacency_matrix(self):
+        if not self.graph.nodes:
+            self.status_label.configure(text="Graph is empty.")
+            return
+
+        node_ids = sorted(self.graph.nodes.keys())
+
+        matrix = []
+        header = "    " + " ".join(f"{i:>3}" for i in node_ids)
+        matrix.append(header)
+
+        for i in node_ids:
+            row = [f"{i:>3}"]
+            for j in node_ids:
+                if i == j:
+                    val = 0
+                else:
+                    val = 1 if self.graph.has_edge(i, j) else 0
+                row.append(f"{val:>3}")
+            matrix.append(" ".join(row))
+
+        content = "\n".join(matrix)
+
+        # Ask user action
+        choice = self.ask_export_action("Adjacency Matrix")
+
+        if choice == "show":
+            self.show_text_popup("Adjacency Matrix", content)
+
+        elif choice == "save":
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Save adjacency matrix"
+            )
+            if file_path:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                self.status_label.configure(text=f"Adjacency matrix saved to {file_path}")
+
+        else:
+            self.status_label.configure(text="Action cancelled.")
+    def ask_export_action(self, title="Select Action"):
+        popup = ctk.CTkToplevel(self.root)
+        popup.title(title)
+        popup.geometry("300x150")
+        popup.grab_set()
+
+        label = ctk.CTkLabel(
+            popup,
+            text="Choose an action:",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        label.pack(pady=15)
+
+        action = {"choice": None}
+
+        def choose_show():
+            action["choice"] = "show"
+            popup.destroy()
+
+        def choose_save():
+            action["choice"] = "save"
+            popup.destroy()
+
+        def choose_cancel():
+            action["choice"] = "cancel"
+            popup.destroy()
+
+        btn_frame = ctk.CTkFrame(popup)
+        btn_frame.pack(pady=10)
+
+        ctk.CTkButton(btn_frame, text="Show", width=70, command=choose_show).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Save", width=70, command=choose_save).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Cancel", width=70, command=choose_cancel).pack(side="left", padx=5)
+
+        popup.wait_window()
+        return action["choice"]
+    def measure_time(self, func, *args):
+        start = time.perf_counter()
+        result = func(*args)
+        end = time.perf_counter()
+        return result, (end - start)
+    def run_performance_test(self):
+        if not self.graph.nodes:
+            self.status_label.configure(text="Graph is empty.")
+            return
+
+        results = {}
+
+        start_node = min(self.graph.nodes.keys())
+        end_node = max(self.graph.nodes.keys())
+
+        # BFS
+        _, t_bfs = self.measure_time(bfs, self.graph, start_node)
+        results["BFS"] = t_bfs
+
+        # DFS
+        _, t_dfs = self.measure_time(dfs, self.graph, start_node)
+        results["DFS"] = t_dfs
+
+        # Dijkstra
+        (_, _prev), t_dijkstra = self.measure_time(dijkstra, self.graph, start_node)
+        results["Dijkstra"] = t_dijkstra
+
+        # A*
+        (_, _prev, _), t_astar = self.measure_time(astar, self.graph, start_node, end_node)
+        results["A*"] = t_astar
+
+        # Components
+        _, t_components = self.measure_time(connected_components, self.graph)
+        results["Connected Components"] = t_components
+
+        # Coloring
+        _, t_color = self.measure_time(welsh_powell, self.graph)
+        results["Graph Coloring"] = t_color
+
+        # Format report
+        report_lines = ["Performance Report (seconds):\n"]
+        for key, value in results.items():
+            report_lines.append(f"{key:<22} : {value:.6f}")
+
+        report = "\n".join(report_lines)
+
+        # Show popup
+        self.show_text_popup("Performance Report", report)
+
+        # Ask if user wants to save
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text Files", "*.txt")],
+            title="Save performance report"
+        )
+
+        if file_path:
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(report)
+            self.status_label.configure(text="Performance report saved.")
 
     # =================================================================
     # Sidebar
@@ -221,9 +404,60 @@ class SocialNetworkUI:
 
         ctk.CTkLabel(self.sidebar, text=" ", height=10).pack()
 
-        ctk.CTkButton(self.sidebar, text="Load sample CSV", command=self.load_sample_graph, **btn_cfg).pack(pady=4, padx=10, fill="x")
-        ctk.CTkButton(self.sidebar, text="Clear graph", fg_color="#a83232", hover_color="#7a2020",
-                      command=self.clear_graph, **btn_cfg).pack(pady=(8, 4), padx=10, fill="x")
+        ctk.CTkButton(
+                  self.sidebar,
+                  text="Adjacency List",
+                  command=self.export_adjacency_list,
+                  **btn_cfg
+                 ).pack(pady=4, padx=10, fill="x")
+
+        ctk.CTkButton(
+                self.sidebar,
+                text="Adjacency Matrix",
+                command=self.export_adjacency_matrix,
+                **btn_cfg
+              ).pack(pady=4, padx=10, fill="x")
+        
+        ctk.CTkLabel(self.sidebar, text=" ", height=10).pack()
+        ctk.CTkButton(
+                   self.sidebar,
+                   text="Load sample CSV",
+                   command=self.load_sample_graph,
+                   **btn_cfg
+                ).pack(pady=4, padx=10, fill="x")
+
+        ctk.CTkButton(
+                    self.sidebar,
+                    text="Save as JSON",
+                    command=self.save_graph_to_json,
+                    **btn_cfg
+                 ).pack(pady=4, padx=10, fill="x")
+
+        ctk.CTkButton(
+                   self.sidebar,
+                   text="Load from JSON",
+                   command=self.load_graph_from_json,
+                   **btn_cfg
+                 ).pack(pady=4, padx=10, fill="x")
+        ctk.CTkLabel(self.sidebar, text=" ", height=10).pack()
+        ctk.CTkButton(
+                self.sidebar,
+                text="Performance Test",
+                fg_color="#32a85f",
+                 hover_color="#207a4d",
+                command=self.run_performance_test,
+                **btn_cfg
+               ).pack(pady=1, padx=10, fill="x")
+
+        ctk.CTkButton(
+                 self.sidebar,
+                 text="Clear graph",
+                 fg_color="#a83232",
+                 hover_color="#7a2020",
+                 command=self.clear_graph,
+                 **btn_cfg
+                ).pack(pady=(8, 4), padx=10, fill="x")
+
 
 
     # =================================================================
@@ -523,99 +757,139 @@ class SocialNetworkUI:
         self.selected_node = None
 
         self.status_label.configure(text="Graph cleared.")
+    def save_graph_to_json(self):
+        if not self.graph.nodes:
+            self.status_label.configure(text="Graph is empty. Nothing to save.")
+            return
+
+        file_path = filedialog.asksaveasfilename(
+
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")],
+            title="Save graph as JSON"
+        )
+        if not file_path:
+            return
+
+        data = {"nodes": [], "edges": []}
+
+        # Serialize nodes with positions
+        for nid, node in self.graph.nodes.items():
+            x, y = self.node_positions.get(nid, (0.0, 0.0))
+            data["nodes"].append({
+                "id": nid,
+                "name": node.name,
+                "activity": node.activity,
+                "interaction": node.interaction,
+                "connection_count": node.connection_count,
+                "x": x,
+                "y": y,
+            })
+
+        # Serialize edges
+        for edge in self.graph.get_edges():
+            data["edges"].append({
+                "u": edge.u,
+                "v": edge.v,
+                "weight": edge.weight,
+            })
+
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+            self.status_label.configure(text=f"Graph saved to {os.path.basename(file_path)}.")
+        except Exception as e:
+            self.status_label.configure(text=f"Failed to save JSON: {e}")
+    def load_graph_from_json(self):
+        file_path = filedialog.askopenfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")],
+            title="Load graph from JSON"
+        )
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            self.status_label.configure(text=f"Failed to read JSON: {e}")
+            return
+
+        # Reset current graph and visuals
+        self.canvas.delete("all")
+        from models.graph import Graph
+        self.graph = Graph()
+        self.node_positions.clear()
+        self.node_items.clear()
+        self.edge_items.clear()
+        self.selected_node = None
+
+        # Rebuild nodes
+        for node_data in data.get("nodes", []):
+            nid = int(node_data["id"])
+            name = node_data.get("name")
+            activity = float(node_data.get("activity", 0.0))
+            interaction = int(node_data.get("interaction", 0))
+            connection_count = int(node_data.get("connection_count", 0))
+
+            # Add to backend graph
+            self.graph.add_node(
+                nid,
+                name=name,
+                activity=activity,
+                interaction=interaction,
+                connection_count=connection_count,
+            )
+
+            # Draw on canvas
+            x = float(node_data.get("x", 0.0))
+            y = float(node_data.get("y", 0.0))
+
+            circle = self.canvas.create_oval(
+                x - self.node_radius, y - self.node_radius,
+                x + self.node_radius, y + self.node_radius,
+                fill="#3A5166",
+                outline="#ffffff",
+                width=1
+            )
+            text = self.canvas.create_text(
+                x, y, text=str(nid),
+                fill="#e5e7eb",
+                font=("Segoe UI", 12, "bold")
+            )
+
+            self.node_positions[nid] = (x, y)
+            self.node_items[nid] = (circle, text)
+
+        # Rebuild edges
+        for e_data in data.get("edges", []):
+            u = int(e_data.get("u"))
+            v = int(e_data.get("v"))
+            weight = float(e_data.get("weight", 1.0))
+
+            if u not in self.graph.nodes or v not in self.graph.nodes:
+                continue
+
+            # Backend edge
+            self.graph.add_edge(u, v, weight)
+
+            # Visual edge
+            x1, y1 = self.node_positions[u]
+            x2, y2 = self.node_positions[v]
+            line_id = self.canvas.create_line(x1, y1, x2, y2, fill="#9CA3AF", width=2)
+            self.edge_items[frozenset({u, v})] = line_id
+
+        # Update next_node_id for adding new nodes later
+        if self.graph.nodes:
+            self.next_node_id = max(self.graph.nodes.keys()) + 1
+        else:
+            self.next_node_id = 1
+
+        self.status_label.configure(text=f"Graph loaded from {os.path.basename(file_path)}.")
 
 
-    def load_sample_graph(self):
-      print(">>> LOAD SAMPLE GRAPH")
-      print("FILE:", __file__)
-
-      # Move two levels up → project root
-      project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-      project_root = os.path.dirname(project_root)
-
-      csv_path = os.path.join(project_root, "data", "sample_small.csv")
-
-      print("CSV PATH:", csv_path)
-
-      if not os.path.exists(csv_path):
-          print("CSV NOT FOUND:", csv_path)
-          self.status_label.configure(text="ERROR: CSV not found")
-          return
-
-      from models.graph_loader import GraphLoader
-
-      # --- reset UI ---
-      self.canvas.delete("all")
-      self.node_positions.clear()
-      self.node_items.clear()
-      self.edge_items.clear()
-
-      # --- load graph backend (nodes + edges already created!) ---
-      self.graph = GraphLoader.load_from_csv(csv_path)
-      # Force cleanup of edges: ensure all edges are Edge objects
-      clean_edges = []
-      for e in self.graph.edges:
-         if hasattr(e, "u") and hasattr(e, "v"):
-           clean_edges.append(e)
-         else:
-         # e is tuple-based backup
-           u, v = e
-         # compute weight again from node data
-           n1 = self.graph.nodes[u]
-           n2 = self.graph.nodes[v]
-           weight = 1.0 / (
-             1.0 + math.sqrt(
-                (n1.activity - n2.activity)**2 +
-                (n1.interaction - n2.interaction)**2 +
-                (n1.connection_count - n2.connection_count)**2
-             )
-           )
-           self.graph.add_edge(u, v, weight)
-
-      self.graph.edges = clean_edges
-
-
-      # --- compute circle positions ---
-      width = self.canvas.winfo_width() or 900
-      height = self.canvas.winfo_height() or 700
-      cx, cy = width // 2, height // 2
-      radius = min(width, height) // 2 - 120
- 
-      node_ids = sorted(self.graph.nodes.keys())
-      n = len(node_ids)
-
-      # --- only DRAW nodes (do NOT add again to graph) ---
-      for i, nid in enumerate(node_ids):
-          angle = 2 * math.pi * i / n
-          x = cx + radius * math.cos(angle)
-          y = cy + radius * math.sin(angle)
-
-          # store canvas node
-          circle = self.canvas.create_oval(
-              x - self.node_radius, y - self.node_radius,
-              x + self.node_radius, y + self.node_radius,
-              fill="#3A5166",
-              outline="#ffffff",
-              width=1
-          )
-          text = self.canvas.create_text(
-              x, y, text=str(nid),
-              fill="#e5e7eb",
-              font=("Segoe UI", 12, "bold")
-          )
-
-          self.node_positions[nid] = (x, y)
-          self.node_items[nid] = (circle, text)
-
-      # --- draw edges ---
-      for edge in self.graph.edges:
-          u, v = edge.u, edge.v
-          x1, y1 = self.node_positions[u]
-          x2, y2 = self.node_positions[v]
-          line_id = self.canvas.create_line(x1, y1, x2, y2, fill="#9CA3AF", width=2)
-          self.edge_items[frozenset({u, v})] = line_id
-
-      self.status_label.configure(text="Sample CSV loaded successfully!")
+    
     # =================================================================
     # Animation helpers
     # =================================================================
@@ -662,6 +936,83 @@ class SocialNetworkUI:
             self.root.after(delay_ms, lambda: step(i+1))
 
         step(0)
+    def load_sample_graph(self):
+     print(">>> LOAD SAMPLE GRAPH")
+     print("FILE:", __file__)
+
+     # Determine the project root
+     ui_dir = os.path.dirname(os.path.abspath(__file__))
+     src_dir = os.path.dirname(ui_dir)
+     project_root = os.path.dirname(src_dir)
+
+     csv_path = os.path.join(project_root, "data", "sample_small.csv")
+     print("CSV PATH:", csv_path)
+
+     if not os.path.exists(csv_path):
+         print("CSV NOT FOUND:", csv_path)
+         self.status_label.configure(text="ERROR: CSV not found.")
+         return
+
+     from models.graph_loader import GraphLoader
+
+     # Reset UI
+     self.canvas.delete("all")
+     self.node_positions.clear()
+     self.node_items.clear()
+     self.edge_items.clear()
+     self.selected_node = None
+
+     # Load Backend Graph
+     self.graph = GraphLoader.load_from_csv(csv_path)
+
+     # Layout nodes in a circle
+     width = self.canvas.winfo_width() or 900
+     height = self.canvas.winfo_height() or 700
+     cx, cy = width // 2, height // 2
+     radius = min(width, height) // 2 - 120
+
+     node_ids = sorted(self.graph.nodes.keys())
+     n = len(node_ids) if node_ids else 1
+
+     # Draw nodes
+     for i, nid in enumerate(node_ids):
+         angle = 2 * math.pi * i / n
+         x = cx + radius * math.cos(angle)
+         y = cy + radius * math.sin(angle)
+
+         circle = self.canvas.create_oval(
+             x - self.node_radius, y - self.node_radius,
+             x + self.node_radius, y + self.node_radius,
+             fill="#3A5166",
+             outline="#ffffff",
+             width=1,
+         )
+         text = self.canvas.create_text(
+             x, y, text=str(nid),
+             fill="#e5e7eb",
+             font=("Segoe UI", 12, "bold")
+         )
+
+         self.node_positions[nid] = (x, y)
+         self.node_items[nid] = (circle, text)
+
+     # Draw edges — FIXED VERSION
+     for edge in self.graph.get_edges():  # <<< THIS WAS THE BUG
+         u, v = edge.u, edge.v
+         x1, y1 = self.node_positions[u]
+         x2, y2 = self.node_positions[v]
+         line_id = self.canvas.create_line(
+             x1, y1, x2, y2, fill="#9CA3AF", width=2
+         )
+         self.edge_items[frozenset({u, v})] = line_id
+
+     # Fix next node ID
+     if self.graph.nodes:
+         self.next_node_id = max(self.graph.nodes.keys()) + 1
+     else:
+         self.next_node_id = 1
+
+     self.status_label.configure(text="Sample CSV loaded successfully.")
 
 
     # =================================================================
