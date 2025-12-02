@@ -208,12 +208,12 @@ __marimo__/
 
 
 # Tests 
-test_graph_basic.py
-test_loader_basic.py
-test_dfs.py
-test_dijkstra.py
-test_astar.py
-test_components.py
-test_centrality.py
-test_coloring_Wp.py
-test_bfs.py
+# test_graph_basic.py
+# test_loader_basic.py
+# test_dfs.py
+# test_dijkstra.py
+# test_astar.py
+# test_components.py
+# test_centrality.py
+# test_coloring_Wp.py
+# test_bfs.py 

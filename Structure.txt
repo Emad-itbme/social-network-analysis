@@ -1,12 +1,10 @@
 social-network-analysis/
-│
 ├── src/
 │   ├── models/
 │   │   ├── node.py
 │   │   ├── edge.py
 │   │   ├── graph.py
 │   │   └── graph_loader.py
-│   │
 │   ├── algorithms/
 │   │   ├── bfs.py
 │   │   ├── dfs.py
@@ -15,30 +13,27 @@ social-network-analysis/
 │   │   ├── connected_components.py
 │   │   ├── degree_centrality.py
 │   │   └── welsh_powell.py
-│   │
-│   ├── ui/
-│   │   ├── main_window.py
-│   │   ├── graph_canvas.py
-│   │   ├── controls_panel.py
-│   │   └── app.py
-│   │
-│   └── utils/
-│       ├── json_exporter.py
-│       ├── csv_exporter.py
-│       ├── adjacency_exporter.py
-│       └── performance_timer.py
-│
+│   └── ui/
+│       └── app.py
 ├── data/
+│   ├── graph.json
 │   ├── sample_small.csv
-│   ├── sample_medium.csv
-│   └── graph.json
-│
+│   └── sample_medium.csv
 ├── screenshots/
-│
+│   └── [project screenshots]
 ├── tests/
-│   ├── test_small_graph.py
-│   └── test_medium_graph.py
-│
+│   ├── test_astar.py
+│   ├── test_bfs.py
+│   ├── test_centrality.py
+│   ├── test_coloring_Wp.py
+│   ├── test_components.py
+│   ├── test_dfs.py
+│   ├── test_dijkstra.py
+│   ├── test_graph_basic.py
+│   ├── test_loader_basic.py
+│   ├── test_medium_graph.py
+│   └── test_small_graph.py
+├── .gitignore
 ├── README.md
 ├── requirements.txt
-└── .gitignore
+└── Structure.txt
