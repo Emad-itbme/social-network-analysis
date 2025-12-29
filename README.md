@@ -18,14 +18,15 @@ Social Network Analysis
 | 241307128 | Hamza | Al Halabi |
 | 241307126 | Emad | Alabdulrahman |
 
-Grup No: 37  
+Grup No: 17  
 Proje Dönemi: 2025–2026 Güz
 
 ---
 
 ## İçindekiler
 
-1. [Proje Özeti](#1-proje-özeti)
+0. [Özet](#özet)
+1. [Giriş](#1-giriş)
 2. [Sistem Mimarisi](#2-sistem-mimarisi)
 3. [Algoritma Uygulamaları](#3-algoritma-uygulamaları)
 4. [Veri Modelleri](#4-veri-modelleri)
@@ -36,6 +37,9 @@ Proje Dönemi: 2025–2026 Güz
 9. [Test Sonuçları](#9-test-sonuçları-ve-validasyon)
 10. [Geliştirilmiş Özellikler](#10-geliştirilmiş-özellikler-ve-gelecek-yönü)
 11. [Kaynakça](#11-kaynakça-ve-referanslar)
+12. [Sık Sorulan Sorular](#12-sık-sorulan-sorular-faq)
+13. [Lisans](#13-lisans)
+14. [Katkıda Bulunma](#14-katkıda-bulunma)
 
 ---
 
@@ -1456,6 +1460,32 @@ graph LR
 - **Yazı Tipi:** System default (14pt normal, 12pt küçük)
 
 ### 5.5 Uygulamayı Başlatma
+
+#### **Yöntem 1: Doğrudan Çalıştırılabilir Dosya (.exe) ile (Önerilen)**
+
+En kolay ve hızlı yöntem, hazır çalıştırılabilir dosyayı kullanmaktır:
+
+```bash
+# Windows için
+1. app.exe dosyasına çift tıklayın
+2. Program otomatik olarak başlayacaktır
+```
+
+**Avantajlar:**
+- ✅ Python kurulumu gerektirmez
+- ✅ Bağımlılık yüklemeye gerek yok
+- ✅ Tek tıkla çalışır
+- ✅ Tüm özellikler hazır kullanıma hazır
+- ✅ Son kullanıcılar için idealdir
+
+**Not:** app.exe dosyası, tüm gerekli kütüphaneleri ve bağımlılıkları içinde barındırır, bu nedenle Python veya herhangi bir ek kurulum yapmadan doğrudan çalıştırılabilir.
+
+---
+
+#### **Yöntem 2: Python Kaynak Kodundan Çalıştırma (Geliştiriciler İçin)**
+
+Geliştirme veya özelleştirme yapmak istiyorsanız, kaynak koddan çalıştırabilirsiniz:
+
 ```bash
 # Adım 1: Bağımlılıkları yükle
 pip install -r requirements.txt
@@ -1467,6 +1497,27 @@ python src/ui/app.py
 python src/ui/app.py --load-sample-small
 python src/ui/app.py --load-sample-medium
 ```
+
+**Gereksinimler:**
+- Python 3.10 veya üzeri
+- pip paket yöneticisi
+- requirements.txt'deki kütüphaneler
+
+---
+
+#### **Karşılaştırma Tablosu**
+
+| Özellik | app.exe | Kaynak Kod |
+|---------|---------|------------|
+| **Python Kurulumu** | ❌ Gerekmez | ✅ Gerekli |
+| **Bağımlılık Yükleme** | ❌ Gerekmez | ✅ Gerekli |
+| **Başlatma Hızı** | 🚀 Hızlı (2-3 saniye) | 🐌 Yavaş (5-10 saniye) |
+| **Dosya Boyutu** | 📦 ~35 MB | 📄 ~5 MB |
+| **Özelleştirme** | ❌ Sınırlı | ✅ Tam Erişim |
+| **Güncelleme** | 🔄 Yeni .exe indir | 🔄 git pull |
+| **Hedef Kitle** | 👥 Son Kullanıcılar | 👨‍💻 Geliştiriciler |
+
+**Öneri:** Sadece uygulamayı kullanmak istiyorsanız **app.exe** dosyasını tercih edin. Kod üzerinde çalışmak veya geliştirme yapmak istiyorsanız **kaynak koddan** çalıştırın.
 
 ### 5.6 Örnek Senaryo: Sosyal Ağ Analizi
 
