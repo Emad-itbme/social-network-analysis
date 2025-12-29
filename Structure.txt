@@ -36,4 +36,5 @@ social-network-analysis/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-└── Structure.txt
+├── Structure.txt
+└── app.exe
