@@ -777,17 +777,6 @@ Toplam Kullanılan Renk: 4
 
 ---
 
-#### 3.1.8 Algoritma Karmaşıklıkları Karşılaştırma Tablosu
-
-| Algoritma | Zaman Karmaşıklığı | Alan Karmaşıklığı | En İyi Kullanım Senaryosu |
-|-----------|-------------------|------------------|---------------------------|
-| **BFS** | O(V + E) | O(V) | Ağırlıksız en kısa yol, seviye analizi |
-| **DFS** | O(V + E) | O(V) | Döngü tespiti, topolojik sıralama |
-| **Dijkstra** | O((V+E) log V) | O(V) | Pozitif ağırlıklı en kısa yol |
-| **A*** | O(E log V) | O(V) | Heuristik ile hızlı yol bulma |
-| **Connected Components** | O(V + E) | O(V) | Ağ parçalanması analizi |
-| **Degree Centrality** | O(V) | O(V) | Influencer tespiti |
-| **Welsh-Powell** | O(V²) | O(V) | Çizelgeleme, frekans atama |
 
 ---
 
@@ -1505,6 +1494,172 @@ python src/ui/app.py --load-sample-medium
    - Status Bar'da: "3 adım, 0.45ms"
    - Uyarı: "Toplam mesafe: 2.85"
 ```
+### 5.7 Ekran Görüntüleri ve Kullanım Örnekleri
+
+Bu bölümde, uygulamanın temel özelliklerini gösteren ekran görüntüleri sunulmaktadır.
+
+---
+
+#### 5.7.1 Ana Uygulama Arayüzü
+
+![Ana Arayüz](images/main_interface.png)
+
+**Şekil 5.1:** Ana uygulama penceresi. Sol tarafta algoritma kontrol paneli, sağ tarafta grafik görüntüleme alanı ve alt kısımda durum çubuğu bulunmaktadır.
+
+**Arayüz Bileşenleri:**
+- 🎨 **Canvas (Sağ):** Grafik görselleştirme alanı
+- 🎛️ **Sidebar (Sol):** Algoritma seçimi ve kontroller
+- 📊 **Status Bar (Alt):** Performans metrikleri ve bilgilendirmeler
+
+---
+
+#### 5.7.2 Grafik Oluşturma ve Düzenleme
+
+<div align="center">
+  <img src="images/graph_creation.png" alt="Grafik Oluşturma" width="700">
+  
+  **Şekil 5.2:** Kullanıcı etkileşimleri ile grafik oluşturma süreci
+</div>
+
+**Temel İşlemler:**
+1. **Sol Tıklama:** Boş alana tıklayarak yeni düğüm oluşturma
+2. **Sürükle-Bırak:** İki düğüm arasında kenar oluşturma
+3. **Sağ Tık:** Bağlam menüsü ile düğüm/kenar silme
+4. **Çift Tık:** Düğüm özelliklerini düzenleme
+
+---
+
+#### 5.7.3 BFS Algoritması Çalışma Görüntüsü
+
+![BFS Sonucu](images/bfs_result.png)
+
+**Şekil 5.3:** BFS algoritması çalıştırıldıktan sonra düğümlerin seviye seviye renklendirilmiş hali. Başlangıç düğümü (1) merkezdedir ve komşular yeşil tonlarında gösterilir.
+
+
+
+**Performans Bilgisi:**
+```
+Algoritma: BFS
+Başlangıç: Düğüm 1
+Ziyaret Edilen: 10 düğüm
+Süre: 0.156 ms
+```
+
+---
+
+#### 5.7.4 Dijkstra En Kısa Yol Bulma
+
+| Başlangıç | Sonuç |
+|-----------|-------|
+| ![Başlangıç Graf](images/dijkstra_before.png) | ![En Kısa Yol](images/dijkstra_after.png) |
+
+**Şekil 5.4:** Dijkstra algoritması ile en kısa yol bulma. Sol: Orijinal grafik, Sağ: Bulunan en kısa yol (mavi çizgi).
+
+**Örnek Senaryo:**
+- **Başlangıç:** İstanbul (Düğüm 1)
+- **Hedef:** İzmir (Düğüm 5)
+- **Bulunan Yol:** 1 → 3 → 4 → 5
+- **Toplam Mesafe:** 485 km
+- **Çalışma Süresi:** 2.34 ms
+
+---
+
+#### 5.7.5 Welsh-Powell Grafik Renklendirme
+
+<p align="center">
+  <img src="images/coloring_result.png" alt="Renklendirme Sonucu" width="600">
+</p>
+
+**Şekil 5.5:** Welsh-Powell algoritması ile grafik renklendirme sonucu. Her renk bir renk sınıfını temsil eder ve komşu düğümler farklı renklere sahiptir.
+
+**Renklendirme Sonuçları:**
+- 🔴 **Renk 1 (Kırmızı):** Düğümler [1, 3, 5, 6]
+- 🟢 **Renk 2 (Yeşil):** Düğümler [4, 7, 8, 10, 11]
+- 🔵 **Renk 3 (Mavi):** Düğümler [12, 13]
+
+
+---
+
+#### 5.7.6 Veri Yükleme Dialog Penceresi
+
+![CSV Yükleme](images/csv_loader_dialog.png)
+
+**Şekil 5.6:** CSV dosyasından grafik verisi yükleme penceresi. Kullanıcı, sütun haritalamasını özelleştirebilir.
+
+**Dialog Özellikleri:**
+```python
+# Örnek Sütun Haritalaması
+{
+    'node_id': 'DugumId',
+    'name': 'Ad',
+    'activity': 'Aktivite',
+    'interaction': 'Etkilesim',
+    'connection_count': 'Baglanti',
+    'neighbors': 'Komsular'
+}
+```
+
+---
+
+#### 5.7.7 Performans Karşılaştırma Grafikleri
+
+![Performans Grafiği](images/performance_chart.png)
+
+**Şekil 5.7:** Farklı algoritmaların çalışma sürelerinin karşılaştırmalı bar grafiği. 50 düğümlü orta boy grafik üzerinde ölçüm yapılmıştır.
+
+**Performans Sıralaması (Hızlı → Yavaş):**
+1. 🥇 Derece Merkeziyeti: 0.041 ms
+2. 🥈 DFS: 0.128 ms
+3. 🥉 BFS: 0.156 ms
+4. Welsh-Powell: 0.847 ms
+5. Dijkstra: 2.543 ms
+6. A*: 3.215 ms
+
+---
+
+#### 5.7.8 Bağlı Bileşenler Analizi
+
+<table>
+  <tr>
+    <td><img src="images/components_before.png" alt="Bağlı Bileşenler - Önce"></td>
+    <td><img src="images/components_after.png" alt="Bağlı Bileşenler - Sonra"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Şekil 5.8a:</b> Orijinal grafik</td>
+    <td align="center"><b>Şekil 5.8b:</b> 3 bağlı bileşen tespit edildi</td>
+  </tr>
+</table>
+
+**Tespit Edilen Bileşenler:**
+- **Bileşen 1 (Kırmızı):** 25 düğüm - Ana sosyal grup
+- **Bileşen 2 (Yeşil):** 15 düğüm - İzole alt grup
+- **Bileşen 3 (Mavi):** 10 düğüm - Küçük topluluk
+
+---
+
+#### 5.7.9 Gerçek Zamanlı Animasyon
+
+![Algoritma Animasyonu](images/animation_frames.gif)
+
+**Şekil 5.9:** BFS algoritmasının adım adım çalışmasını gösteren animasyon. Her kare, algoritmanın bir iterasyonunu temsil eder.
+
+
+---
+
+#### 5.7.10 Derece Merkeziyeti Analizi
+
+![Derece Merkeziyeti Isı Haritası](images/centrality_heatmap.png)
+
+**Şekil 5.10:** Düğümlerin derece merkeziyeti değerlerine göre ısı haritası. Kırmızı tonlar yüksek merkezi önemi gösterir.
+
+**En Etkileyici Düğümler:**
+| Sıra | Düğüm | İsim | Derece | Normalized |
+|------|-------|------|--------|------------|
+| 1 | 5 | Alice | 15 | 0.306 |
+| 2 | 12 | Bob | 13 | 0.265 |
+| 3 | 3 | Charlie | 11 | 0.224 |
+| 4 | 8 | Diana | 9 | 0.184 |
+| 5 | 1 | Eve | 8 | 0.163 |
 
 ---
 
