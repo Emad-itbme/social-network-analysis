@@ -1,6 +1,6 @@
 # Sosyal Ağ Analizi Projesi
 
-## 1. Kapak ve Proje Bilgileri
+## Kapak ve Proje Bilgileri
 
 Kocaeli Üniversitesi - Bilişim Sistemleri Mühendisliği  
 Ders: Yazılım Geliştirme Laboratuvarı I  
@@ -19,7 +19,7 @@ Social Network Analysis
 | 241307126 | Emad | Alabdulrahman |
 
 Grup No: 37  
-Proje Dönemi: 2024–2025 Güz
+Proje Dönemi: 2025–2026 Güz
 
 ---
 
@@ -39,7 +39,7 @@ Proje Dönemi: 2024–2025 Güz
 
 ---
 
-## 2. Özet
+## Özet
 
 Bu proje, sosyal ağların dinamik yapısını analiz etmek, görselleştirmek ve çeşitli grafik algoritmalarını pratik olarak uygulamak için geliştirilmiş kapsamlı bir bilimsel araştırma platformudur.
 
@@ -60,7 +60,7 @@ Bu proje, akademik araştırma, uygulamalı sorunlar ve eğitim amaçları için
 
 ---
 
-## 3. Giriş
+## 1. Giriş
 
 1. **Dinamik Ağ Oluşturma:** Kullanıcılar, sezgisel bir arayüz üzerinden sosyal ağları interaktif şekilde oluşturabilir
 2. **Gerçek Zamanlı Yönetim:** Düğüm ve kenar özelliklerini dinamik olarak düzenleyebilir ve güncelleyebilir
@@ -336,7 +336,7 @@ flowchart TD
 4. Tüm düğümler işlenene kadar devam et
 
 ```mermaid
-flowchart TD
+flowchart LR
     Start([🟢 BAŞLA: Dijkstra]) --> Input["📥 GİRDİ:<br/>Graph, start_node"]
     
     Input --> Init["🔧 BAŞLATMA:<br/>distances[tüm düğümler] = ∞<br/>distances[start_node] = 0<br/>previous[tüm düğümler] = None<br/>priority_queue = [(0, start_node)]"]
@@ -424,7 +424,7 @@ print(f"Yol: {path}")  # Çıktı: [0, 2, 4, 5]
 **Kabul Edilebilir Heuristik:** h(n) gerçek mesafeyi asla aşmamalıdır (optimality garantisi için).
 
 ```mermaid
-flowchart TD
+flowchart LR
     Start([🟢 BAŞLA: A* Search]) --> Input["📥 GİRDİ:<br/>Graph, start_node, goal_node"]
     
     Input --> Init["🔧 BAŞLATMA:<br/>open_set = {start}<br/>came_from = { }<br/>g_score[tüm] = ∞<br/>g_score[start] = 0<br/>f_score[start] = h(start, goal)"]
@@ -573,7 +573,7 @@ else:
 
 **Algoritma Özeti:** Grafikteki birbirinden bağımsız alt grafları (bileşenleri) tespit eder. Her bağlı bileşen, içindeki herhangi iki düğüm arasında yol bulunan maksimal düğüm kümesidir.
 ```mermaid
-flowchart TD
+flowchart LR
     Start([🟢 Başla: Connected Components]) --> Input[Girdi: Graph]
     
     Input --> Init["visited = { }<br/>components = [ ]<br/>component_id = 0"]
@@ -643,7 +643,7 @@ Bileşen 3: [8]  (izole düğüm)
 
 **Algoritma Özeti:** Her düğümün ağdaki önemini (merkezi konumunu) komşu sayısına göre hesaplar. En yüksek dereceye sahip düğümler, en etkileyici (influencer) düğümlerdir.
 ```mermaid
-flowchart TD
+flowchart LR
     Start([🟢 Başla: Degree Centrality]) --> Input[Girdi: Graph]
     
     Input --> Init["centrality = { }<br/>max_degree = 0<br/>node_count = len(graph.nodes)"]
@@ -697,7 +697,7 @@ Burada:
 
 **Algoritma Özeti:** Graf renklendirme problemi için açgözlü yaklaşım. Komşu düğümlerin farklı renkler almasını garanti ederek minimum renk sayısı ile grafı renklendirir. Yüksek dereceli düğümlerden başlar.
 ```mermaid
-flowchart TD
+flowchart LR
     Start([🟢 Başla: Welsh-Powell]) --> Input[Girdi: Graph]
     
     Input --> CalcDegrees["Her düğümün derece sayısını hesapla:<br/>degrees = {node: len(neighbors)}"]
@@ -1641,7 +1641,7 @@ Süre: 0.156 ms
 
 ![Algoritma Animasyonu](images/animation_frames.gif)
 
-**Şekil 5.9:** BFS algoritmasının adım adım çalışmasını gösteren animasyon. Her kare, algoritmanın bir iterasyonunu temsil eder.
+**Şekil 5.9:** DFS algoritmasının adım adım çalışmasını gösteren animasyon.
 
 
 ---
@@ -1652,14 +1652,7 @@ Süre: 0.156 ms
 
 **Şekil 5.10:** Düğümlerin derece merkeziyeti değerlerine göre ısı haritası. Kırmızı tonlar yüksek merkezi önemi gösterir.
 
-**En Etkileyici Düğümler:**
-| Sıra | Düğüm | İsim | Derece | Normalized |
-|------|-------|------|--------|------------|
-| 1 | 5 | Alice | 15 | 0.306 |
-| 2 | 12 | Bob | 13 | 0.265 |
-| 3 | 3 | Charlie | 11 | 0.224 |
-| 4 | 8 | Diana | 9 | 0.184 |
-| 5 | 1 | Eve | 8 | 0.163 |
+
 
 ---
 
