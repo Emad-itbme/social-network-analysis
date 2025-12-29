@@ -233,7 +233,567 @@ classDiagram
 
 ## 3. Algoritma Uygulamaları
 
-### 3.1 Genişlik Öncelikli Arama (BFS - Breadth-First Search)
+### 3.1 Algoritma Akış Diyagramları
+
+Bu bölümde, projede kullanılan 7 farklı graf algoritmasının adım adım çalışma mantığı görsel akış diyagramları ile sunulmaktadır. Her diyagram, algoritmanın karar noktalarını, döngülerini ve sonlandırma koşullarını açıkça göstermektedir.
+
+---
+
+#### 3.1.1 BFS (Genişlik Öncelikli Arama) Akış Diyagramı
+
+**Algoritma Özeti:** BFS, başlangıç düğümünden başlayarak seviye seviye tüm erişilebilir düğümleri ziyaret eder. FIFO (First-In-First-Out) prensibi ile çalışan bir kuyruk veri yapısı kullanır.
+```mermaid
+flowchart TD
+    Start([🟢 Başla: BFS Algoritması]) --> Input[Girdi: Graph, start_node]
+    Input --> Init["Kuyruk oluştur: queue = [start_node]<br/>Ziyaret seti: visited = { }<br/>Sonuç listesi: order = [ ]"]
+    
+    Init --> CheckQueue{Kuyruk<br/>boş mu?}
+    
+    CheckQueue -->|Hayır| Dequeue["Kuyruktan çıkar:<br/>current = queue.popleft()"]
+    CheckQueue -->|Evet| Return["🔵 Dön: order<br/>(Ziyaret sırası)"]
+    
+    Dequeue --> IsVisited{current ∈<br/>visited?}
+    
+    IsVisited -->|Evet<br/>Zaten ziyaret edildi| CheckQueue
+    IsVisited -->|Hayır<br/>İlk ziyaret| MarkVisited["visited.add(current)<br/>order.append(current)"]
+    
+    MarkVisited --> GetNeighbors["neighbors = graph.get_neighbors(current)"]
+    
+    GetNeighbors --> AddLoop["Her neighbor için:<br/>queue.append(neighbor)"]
+    
+    AddLoop --> CheckQueue
+    
+    Return --> End([🔴 Bitti])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px
+    style CheckQueue fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style IsVisited fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style MarkVisited fill:#FFDAB9,stroke:#8B4513,stroke-width:2px
+    style Return fill:#DDA0DD,stroke:#4B0082,stroke-width:2px
+```
+
+**Zaman Karmaşıklığı:** O(V + E) - Her düğüm ve kenar bir kez işlenir  
+**Alan Karmaşıklığı:** O(V) - Kuyruk ve visited seti için
+
+---
+
+#### 3.1.2 DFS (Derinlik Öncelikli Arama) Akış Diyagramı
+
+**Algoritma Özeti:** DFS, bir yolun sonuna kadar derinlemesine iner, sonra geri dönerek diğer yolları araştırır. Özyinelemeli (recursive) implementasyon ile LIFO prensibi kullanır.
+```mermaid
+flowchart TD
+    Start([🟢 Başla: DFS Algoritması]) --> Input[Girdi: Graph, start_node]
+    Input --> Init["Ziyaret seti: visited = { }<br/>Sonuç listesi: order = [ ]"]
+    
+    Init --> CallDFS["dfs_recursive(start_node) çağır"]
+    
+    CallDFS --> RecStart([🔵 Özyinelemeli Fonksiyon Başla])
+    
+    RecStart --> AddVisited["visited.add(current_node)<br/>order.append(current_node)"]
+    
+    AddVisited --> GetNeighbors["neighbors = graph.get_neighbors(current_node)"]
+    
+    GetNeighbors --> LoopStart{Her neighbor<br/>için döngü}
+    
+    LoopStart -->|Neighbor var| CheckVisited{neighbor ∈<br/>visited?}
+    
+    CheckVisited -->|Evet<br/>Atla| NextNeighbor[Sonraki neighbor'a geç]
+    CheckVisited -->|Hayır<br/>Ziyaret et| RecursiveCall["🔄 dfs_recursive(neighbor)<br/>özyinelemeli çağrı"]
+    
+    RecursiveCall --> NextNeighbor
+    NextNeighbor --> LoopStart
+    
+    LoopStart -->|Neighbor kalmadı| RecEnd([🔵 Özyinelemeli Fonksiyon Bitti])
+    
+    RecEnd --> Return["🔵 Dön: order<br/>(DFS ziyaret sırası)"]
+    
+    Return --> End([🔴 Bitti])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px
+    style RecStart fill:#E6E6FA,stroke:#4B0082,stroke-width:2px
+    style RecEnd fill:#E6E6FA,stroke:#4B0082,stroke-width:2px
+    style CheckVisited fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style LoopStart fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style RecursiveCall fill:#FFD700,stroke:#FF8C00,stroke-width:2px
+    style Return fill:#DDA0DD,stroke:#4B0082,stroke-width:2px
+```
+
+**Zaman Karmaşıklığı:** O(V + E) - BFS ile aynı  
+**Alan Karmaşıklığı:** O(V) - Özyinelemeli çağrı yığını (stack)
+
+---
+
+#### 3.1.3 Dijkstra En Kısa Yol Akış Diyagramı
+
+**Algoritma Özeti:** Dijkstra algoritması, negatif olmayan ağırlıklı bir grafta, başlangıç düğümünden diğer tüm düğümlere olan en kısa mesafeleri hesaplar. Açgözlü (greedy) yaklaşım kullanarak her adımda henüz işlenmemiş en yakın düğümü seçer ve komşularının mesafelerini günceller.
+
+**Çalışma Prensibi:**
+1. Tüm düğümlere sonsuz mesafe ata, başlangıca 0 ata
+2. Priority queue'dan en küçük mesafeli düğümü al
+3. Komşularının mesafelerini kontrol et ve gerekirse güncelle
+4. Tüm düğümler işlenene kadar devam et
+
+```mermaid
+flowchart TD
+    Start([🟢 BAŞLA: Dijkstra]) --> Input["📥 GİRDİ:<br/>Graph, start_node"]
+    
+    Input --> Init["🔧 BAŞLATMA:<br/>distances[tüm düğümler] = ∞<br/>distances[start_node] = 0<br/>previous[tüm düğümler] = None<br/>priority_queue = [(0, start_node)]"]
+    
+    Init --> CheckPQ{"🔍 KONTROL:<br/>Priority Queue<br/>boş mu?"}
+    
+    CheckPQ -->|✅ Evet<br/>Tamamlandı| ReturnResult["📤 ÇIKTI:<br/>distances dictionary<br/>previous dictionary"]
+    CheckPQ -->|❌ Hayır<br/>Devam| PopMin["⬇️ KUYRUKTAN AL:<br/>(current_dist, u) = pq.pop()<br/><i>En küçük mesafeli düğüm</i>"]
+    
+    PopMin --> CompareOld{"⚠️ ESKİ VERİ?<br/>current_dist ><br/>distances[u]?"}
+    
+    CompareOld -->|Evet<br/>Atla| CheckPQ
+    CompareOld -->|Hayır<br/>Güncel| GetNeighbors["🔗 KOMŞULARI AL:<br/>neighbors = graph.get_neighbors(u)"]
+    
+    GetNeighbors --> NeighborLoop{"🔄 DÖNGÜ:<br/>Her neighbor v için"}
+    
+    NeighborLoop -->|📍 Neighbor var| CalcDist["📊 MESAFE HESAPLA:<br/>weight = graph.get_edge_weight(u, v)<br/>new_dist = current_dist + weight"]
+    
+    CalcDist --> CompareDist{"📉 KARŞILAŞTIR:<br/>new_dist <<br/>distances[v]?"}
+    
+    CompareDist -->|✅ Evet<br/>Daha kısa yol bulundu!| UpdateDist["✏️ GÜNCELLE:<br/>distances[v] = new_dist<br/>previous[v] = u<br/>pq.push((new_dist, v))"]
+    CompareDist -->|❌ Hayır<br/>Mevcut daha iyi| NextNeighbor["➡️ Sonraki neighbor"]
+    
+    UpdateDist --> NextNeighbor
+    NextNeighbor --> NeighborLoop
+    
+    NeighborLoop -->|✅ Tüm neighbors işlendi| CheckPQ
+    
+    ReturnResult --> End([🔴 BİTTİ])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px,color:#000
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px,color:#000
+    style CheckPQ fill:#87CEEB,stroke:#000080,stroke-width:2px,color:#000
+    style CompareOld fill:#FFA07A,stroke:#8B4513,stroke-width:2px,color:#000
+    style CompareDist fill:#87CEEB,stroke:#000080,stroke-width:2px,color:#000
+    style NeighborLoop fill:#DDA0DD,stroke:#4B0082,stroke-width:2px,color:#000
+    style UpdateDist fill:#98FB98,stroke:#228B22,stroke-width:2px,color:#000
+    style ReturnResult fill:#FFD700,stroke:#DAA520,stroke-width:2px,color:#000
+```
+
+**📊 Karmaşıklık Analizi:**
+- **Zaman Karmaşıklığı:** O((V + E) log V) 
+  - V: Düğüm sayısı, E: Kenar sayısı
+  - Priority queue operasyonları: O(log V)
+- **Alan Karmaşıklığı:** O(V) 
+  - distances, previous ve priority queue için
+
+**⚠️ ÖNEMLİ KISITLAMALAR:**
+- ✅ Tüm kenar ağırlıkları **≥ 0** olmalıdır
+- ❌ Negatif ağırlıklı kenarlar için **Bellman-Ford** algoritması kullanılmalıdır
+
+**💡 Pratik Örnek:**
+```python
+# Örnek kullanım
+distances, previous = dijkstra(graph, start_node=0)
+
+# Düğüm 5'e en kısa mesafe
+print(f"0'dan 5'e mesafe: {distances[5]}")  # Çıktı: 12.5
+
+# Yolu yeniden oluştur
+path = []
+current = 5
+while current is not None:
+    path.append(current)
+    current = previous[current]
+path.reverse()
+print(f"Yol: {path}")  # Çıktı: [0, 2, 4, 5]
+```
+
+**🎯 Kullanım Alanları:**
+- 🗺️ GPS navigasyon sistemleri (en kısa rota)
+- 🌐 Ağ yönlendirme protokolleri (OSPF, IS-IS)
+- 🎮 Oyun geliştirmede yol bulma
+- 📡 Telekomünikasyon ağları
+
+---
+
+#### 3.1.4 A* Heuristik Arama Akış Diyagramı
+
+**Algoritma Özeti:** A* (A-Star) algoritması, Dijkstra'nın optimize edilmiş versiyonudur. Hedef düğüme olan tahmini mesafeyi (heuristik) kullanarak arama alanını daraltır ve daha hızlı sonuç bulur. İki fonksiyon kullanır:
+- **g(n):** Başlangıçtan n düğümüne gerçek mesafe
+- **h(n):** n düğümünden hedefe tahmini mesafe (heuristik)
+- **f(n) = g(n) + h(n):** Toplam maliyet tahmini
+
+**Kabul Edilebilir Heuristik:** h(n) gerçek mesafeyi asla aşmamalıdır (optimality garantisi için).
+
+```mermaid
+flowchart TD
+    Start([🟢 BAŞLA: A* Search]) --> Input["📥 GİRDİ:<br/>Graph, start_node, goal_node"]
+    
+    Input --> Init["🔧 BAŞLATMA:<br/>open_set = {start}<br/>came_from = { }<br/>g_score[tüm] = ∞<br/>g_score[start] = 0<br/>f_score[start] = h(start, goal)"]
+    
+    Init --> CheckOpen{"🔍 KONTROL:<br/>open_set<br/>boş mu?"}
+    
+    CheckOpen -->|✅ Evet| NoPath["❌ YOL BULUNAMADI<br/>return None<br/><i>Hedef erişilemez</i>"]
+    CheckOpen -->|❌ Hayır<br/>Devam| SelectMin["🎯 EN İYİYİ SEÇ:<br/>current = min(open_set, key=f_score)<br/><i>En düşük f değerine sahip düğüm</i>"]
+    
+    SelectMin --> IsGoal{"🏁 HEDEFE ULAŞILDI MI?<br/>current == goal?"}
+    
+    IsGoal -->|✅ EVET!<br/>Başarılı| Reconstruct["🎉 YOLU OLUŞTUR:<br/>path = reconstruct_path(came_from, current)<br/><i>Geriye doğru takip et</i>"]
+    IsGoal -->|❌ Hayır<br/>Devam et| RemoveCurrent["➖ KÜMEDEN ÇIKAR:<br/>open_set.remove(current)<br/><i>İşlendi olarak işaretle</i>"]
+    
+    RemoveCurrent --> GetNeighbors["🔗 KOMŞULARI AL:<br/>neighbors = graph.get_neighbors(current)"]
+    
+    GetNeighbors --> NeighborLoop{"🔄 DÖNGÜ:<br/>Her neighbor için"}
+    
+    NeighborLoop -->|📍 Neighbor var| CalcG["📊 GERÇEK MALİYET:<br/>tentative_g = g_score[current]<br/>+ weight(current, neighbor)"]
+    
+    CalcG --> CompareG{"📉 DAHA İYİ Mİ?<br/>tentative_g <<br/>g_score[neighbor]?"}
+    
+    CompareG -->|✅ Evet<br/>İyileştirme bulundu!| UpdateScores["✏️ TÜM SKORLARI GÜNCELLE:<br/>came_from[neighbor] = current<br/>g_score[neighbor] = tentative_g<br/>f_score[neighbor] = tentative_g + h(neighbor, goal)"]
+    
+    UpdateScores --> InOpen{"❓ ZATEN AÇIK KÜMEDE?<br/>neighbor ∈ open_set?"}
+    
+    InOpen -->|❌ Hayır| AddOpen["➕ KÜMEYE EKLE:<br/>open_set.add(neighbor)"]
+    InOpen -->|✅ Evet<br/>Zaten var| NextNeighbor["➡️ Sonraki neighbor"]
+    
+    CompareG -->|❌ Hayır<br/>Mevcut daha iyi| NextNeighbor
+    AddOpen --> NextNeighbor
+    
+    NextNeighbor --> NeighborLoop
+    
+    NeighborLoop -->|✅ Tüm neighbors işlendi| CheckOpen
+    
+    Reconstruct --> ReturnPath["📤 ÇIKTI:<br/>path (Düğüm listesi)<br/><i>Optimal yol</i>"]
+    
+    ReturnPath --> End([🔴 BİTTİ])
+    NoPath --> End
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px,color:#000
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px,color:#000
+    style CheckOpen fill:#87CEEB,stroke:#000080,stroke-width:2px,color:#000
+    style IsGoal fill:#FFD700,stroke:#FF8C00,stroke-width:3px,color:#000
+    style CompareG fill:#87CEEB,stroke:#000080,stroke-width:2px,color:#000
+    style NeighborLoop fill:#DDA0DD,stroke:#4B0082,stroke-width:2px,color:#000
+    style Reconstruct fill:#98FB98,stroke:#228B22,stroke-width:2px,color:#000
+    style ReturnPath fill:#FFD700,stroke:#DAA520,stroke-width:2px,color:#000
+    style NoPath fill:#FF6B6B,stroke:#8B0000,stroke-width:2px,color:#000
+    style UpdateScores fill:#98FB98,stroke:#228B22,stroke-width:2px,color:#000
+```
+
+**📊 Karmaşıklık Analizi:**
+- **Zaman Karmaşıklığı:** O(b^d) → O(E log V) *(heuristik kalitesine bağlı)*
+  - İyi heuristik: Dijkstra'dan çok daha hızlı
+  - Kötü heuristik: Dijkstra ile aynı
+- **Alan Karmaşıklığı:** O(b^d) → Pratik durumlarda O(V)
+
+**🎯 Heuristik Fonksiyon Örnekleri:**
+
+```python
+import math
+
+def euclidean_distance(node1, node2, graph):
+    """
+    Öklid mesafesi - 2D grid için ideal
+    Kabul edilebilir: Evet (düz çizgi en kısa mesafedir)
+    """
+    x1, y1 = graph.nodes[node1].x, graph.nodes[node1].y
+    x2, y2 = graph.nodes[node2].x, graph.nodes[node2].y
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def manhattan_distance(node1, node2, graph):
+    """
+    Manhattan mesafesi - Grid ağlar için (dört yönlü hareket)
+    Kabul edilebilir: Evet (sadece dik açılı hareket varsa)
+    """
+    x1, y1 = graph.nodes[node1].x, graph.nodes[node1].y
+    x2, y2 = graph.nodes[node2].x, graph.nodes[node2].y
+    return abs(x2 - x1) + abs(y2 - y1)
+
+def chebyshev_distance(node1, node2, graph):
+    """
+    Chebyshev mesafesi - 8 yönlü hareket (diagonal)
+    Kabul edilebilir: Evet (diagonal hareket eşit maliyetliyse)
+    """
+    x1, y1 = graph.nodes[node1].x, graph.nodes[node1].y
+    x2, y2 = graph.nodes[node2].x, graph.nodes[node2].y
+    return max(abs(x2 - x1), abs(y2 - y1))
+
+def zero_heuristic(node1, node2, graph):
+    """
+    Sıfır heuristik - A* → Dijkstra'ya dönüşür
+    Her zaman kabul edilebilir ama optimal değil
+    """
+    return 0
+```
+
+**💡 Pratik Örnek:**
+```python
+# A* ile yol bulma
+path = astar(graph, start=0, goal=25, heuristic=euclidean_distance)
+
+if path:
+    print(f"Yol bulundu: {path}")
+    print(f"Adım sayısı: {len(path) - 1}")
+    
+    # Toplam mesafeyi hesapla
+    total_distance = sum(
+        graph.get_edge_weight(path[i], path[i+1])
+        for i in range(len(path) - 1)
+    )
+    print(f"Toplam mesafe: {total_distance:.2f}")
+else:
+    print("Yol bulunamadı!")
+```
+
+**⚖️ Dijkstra vs A* Karşılaştırması:**
+
+| Özellik | Dijkstra | A* |
+|---------|----------|-----|
+| **Heuristik kullanımı** | ❌ Hayır | ✅ Evet |
+| **Keşfedilen düğüm sayısı** | 🔴 Çok (tüm yönler) | 🟢 Az (hedefe doğru) |
+| **Hız** | 🔴 Yavaş | 🟢 Hızlı |
+| **Optimality** | ✅ Garanti | ✅ Garanti (kabul edilebilir h ile) |
+| **Bellek kullanımı** | 🟢 Düşük | 🟡 Orta |
+| **Hedef bilgisi gerekli mi?** | ❌ Hayır | ✅ Evet |
+
+**🎯 Kullanım Alanları:**
+- 🎮 **Oyun Geliştirme:** NPC pathfinding, karakter hareketi
+- 🤖 **Robotik:** Otonom navigasyon, engel aşma
+- 🗺️ **Harita Uygulamaları:** Trafik durumunu dikkate alan rota
+- 🧩 **Puzzle Çözücüler:** 8-puzzle, Rubik küp
+- 🚗 **Otonom Araçlar:** Gerçek zamanlı rota planlama
+
+**⚠️ Önemli Notlar:**
+1. **Heuristik kabul edilebilir olmalı:** h(n) ≤ gerçek mesafe
+2. **Heuristik tutarlı olmalı (consistency):** h(n) ≤ c(n, n') + h(n')
+3. Bu iki koşul sağlanırsa, A* optimal çözüm garanti eder
+4. Koordinat bilgisi yoksa, A* uygulanamaz (Dijkstra kullanın)
+
+---
+
+#### 3.1.5 Bağlı Bileşenler (Connected Components) Akış Diyagramı
+
+**Algoritma Özeti:** Grafikteki birbirinden bağımsız alt grafları (bileşenleri) tespit eder. Her bağlı bileşen, içindeki herhangi iki düğüm arasında yol bulunan maksimal düğüm kümesidir.
+```mermaid
+flowchart TD
+    Start([🟢 Başla: Connected Components]) --> Input[Girdi: Graph]
+    
+    Input --> Init["visited = { }<br/>components = [ ]<br/>component_id = 0"]
+    
+    Init --> NodeLoop{Her düğüm<br/>için döngü}
+    
+    NodeLoop -->|Düğüm var| CheckVisited{node ∈<br/>visited?}
+    
+    CheckVisited -->|Evet<br/>Zaten işlendi| NextNode1[Sonraki düğüm]
+    CheckVisited -->|Hayır<br/>Yeni bileşen| NewComponent["current_component = [ ]<br/>component_id += 1"]
+    
+    NewComponent --> CallDFS["🔄 DFS(node, current_component)<br/>Bağlı tüm düğümleri bul"]
+    
+    CallDFS --> DFSStart([DFS Başla])
+    
+    DFSStart --> AddToComp["visited.add(node)<br/>current_component.append(node)"]
+    
+    AddToComp --> GetNeighbors["neighbors = graph.get_neighbors(node)"]
+    
+    GetNeighbors --> NeighborLoop{Her neighbor<br/>için}
+    
+    NeighborLoop -->|Neighbor var| CheckVisitedN{neighbor ∈<br/>visited?}
+    
+    CheckVisitedN -->|Evet| NextNeighbor[Sonraki neighbor]
+    CheckVisitedN -->|Hayır| RecursiveDFS["🔄 DFS(neighbor, current_component)<br/>Özyinelemeli çağrı"]
+    
+    RecursiveDFS --> NextNeighbor
+    NextNeighbor --> NeighborLoop
+    
+    NeighborLoop -->|Kalmadı| DFSEnd([DFS Bitti])
+    
+    DFSEnd --> SaveComponent["components.append(current_component)"]
+    
+    SaveComponent --> NextNode2[Sonraki düğüm]
+    NextNode1 --> NodeLoop
+    NextNode2 --> NodeLoop
+    
+    NodeLoop -->|Düğüm kalmadı| ReturnResult["🔵 Dön: components<br/>(List of lists)"]
+    
+    ReturnResult --> End([🔴 Bitti])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px
+    style NodeLoop fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style CheckVisited fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style CheckVisitedN fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style NeighborLoop fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style DFSStart fill:#E6E6FA,stroke:#4B0082,stroke-width:2px
+    style DFSEnd fill:#E6E6FA,stroke:#4B0082,stroke-width:2px
+    style NewComponent fill:#FFDAB9,stroke:#8B4513,stroke-width:2px
+    style ReturnResult fill:#DDA0DD,stroke:#4B0082,stroke-width:2px
+```
+
+**Zaman Karmaşıklığı:** O(V + E) - DFS tabanlı  
+**Alan Karmaşıklığı:** O(V)
+
+**Örnek Çıktı:**
+```
+Bileşen 1: [1, 2, 3, 5]
+Bileşen 2: [4, 6, 7]
+Bileşen 3: [8]  (izole düğüm)
+```
+
+---
+
+#### 3.1.6 Derece Merkeziyeti (Degree Centrality) Akış Diyagramı
+
+**Algoritma Özeti:** Her düğümün ağdaki önemini (merkezi konumunu) komşu sayısına göre hesaplar. En yüksek dereceye sahip düğümler, en etkileyici (influencer) düğümlerdir.
+```mermaid
+flowchart TD
+    Start([🟢 Başla: Degree Centrality]) --> Input[Girdi: Graph]
+    
+    Input --> Init["centrality = { }<br/>max_degree = 0<br/>node_count = len(graph.nodes)"]
+    
+    Init --> NodeLoop{Her düğüm<br/>için döngü}
+    
+    NodeLoop -->|Düğüm var| GetDegree["degree = len(graph.get_neighbors(node))<br/>Komşu sayısını hesapla"]
+    
+    GetDegree --> CalcCentrality["normalized = degree / (node_count - 1)<br/>Normalize et (0-1 arası)"]
+    
+    CalcCentrality --> SaveCentrality["centrality[node] = {<br/>  'degree': degree,<br/>  'normalized': normalized<br/>}"]
+    
+    SaveCentrality --> UpdateMax{degree ><br/>max_degree?}
+    
+    UpdateMax -->|Evet| SetMax["max_degree = degree<br/>most_influential = node"]
+    UpdateMax -->|Hayır| NextNode1[Sonraki düğüm]
+    
+    SetMax --> NextNode2[Sonraki düğüm]
+    NextNode1 --> NodeLoop
+    NextNode2 --> NodeLoop
+    
+    NodeLoop -->|Düğüm kalmadı| SortTop["top_5 = sorted(centrality,<br/>key=degree, reverse=True)[:5]<br/>En yüksek 5'i sırala"]
+    
+    SortTop --> ReturnResult["🔵 Dön: (centrality, top_5)"]
+    
+    ReturnResult --> End([🔴 Bitti])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px
+    style NodeLoop fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style UpdateMax fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style CalcCentrality fill:#FFDAB9,stroke:#8B4513,stroke-width:2px
+    style SortTop fill:#98FB98,stroke:#228B22,stroke-width:2px
+    style ReturnResult fill:#DDA0DD,stroke:#4B0082,stroke-width:2px
+```
+
+**Zaman Karmaşıklığı:** O(V) - Sadece düğümler üzerinde iterasyon  
+**Alan Karmaşıklığı:** O(V) - Centrality dictionary
+
+**Formül:**
+$$C_D(v) = \frac{deg(v)}{n-1}$$
+
+Burada:
+- $C_D(v)$ = Düğüm v'nin derece merkeziyeti
+- $deg(v)$ = Düğüm v'nin komşu sayısı
+- $n$ = Grafikteki toplam düğüm sayısı
+
+---
+
+#### 3.1.7 Welsh-Powell Grafik Renklendirme Akış Diyagramı
+
+**Algoritma Özeti:** Graf renklendirme problemi için açgözlü yaklaşım. Komşu düğümlerin farklı renkler almasını garanti ederek minimum renk sayısı ile grafı renklendirir. Yüksek dereceli düğümlerden başlar.
+```mermaid
+flowchart TD
+    Start([🟢 Başla: Welsh-Powell]) --> Input[Girdi: Graph]
+    
+    Input --> CalcDegrees["Her düğümün derece sayısını hesapla:<br/>degrees = {node: len(neighbors)}"]
+    
+    CalcDegrees --> Sort["Düğümleri dereceye göre AZALAN sırala:<br/>sorted_nodes = sort(nodes, by=degree, DESC)"]
+    
+    Sort --> Init["coloring = { }<br/>colors_used = 0"]
+    
+    Init --> NodeLoop{Sıradaki her<br/>düğüm için}
+    
+    NodeLoop -->|Düğüm var| GetNode["current_node = sorted_nodes.pop()"]
+    
+    GetNode --> GetNeighbors["neighbors = graph.get_neighbors(current_node)"]
+    
+    GetNeighbors --> CollectColors["neighbor_colors = set()<br/>Her komşunun rengini topla"]
+    
+    CollectColors --> NeighborLoop{Her neighbor<br/>için}
+    
+    NeighborLoop -->|Neighbor var| CheckColored{neighbor'ın<br/>rengi var mı?}
+    
+    CheckColored -->|Evet| AddColor["neighbor_colors.add(<br/>coloring[neighbor])"]
+    CheckColored -->|Hayır<br/>Henüz renklendirilmemiş| NextNeighbor1[Sonraki neighbor]
+    
+    AddColor --> NextNeighbor2[Sonraki neighbor]
+    NextNeighbor1 --> NeighborLoop
+    NextNeighbor2 --> NeighborLoop
+    
+    NeighborLoop -->|Kalmadı| FindColor["color = 0<br/>Başlangıç rengi"]
+    
+    FindColor --> CheckAvailable{color ∈<br/>neighbor_colors?}
+    
+    CheckAvailable -->|Evet<br/>Bu renk kullanılmış| Increment["color = color + 1<br/>Sonraki rengi dene"]
+    
+    Increment --> CheckAvailable
+    
+    CheckAvailable -->|Hayır<br/>Bu renk kullanılabilir| AssignColor["coloring[current_node] = color"]
+    
+    AssignColor --> UpdateMax{color ><br/>colors_used?}
+    
+    UpdateMax -->|Evet| SetMax["colors_used = color"]
+    UpdateMax -->|Hayır| NextNode1[Sonraki düğüm]
+    
+    SetMax --> NextNode2[Sonraki düğüm]
+    NextNode1 --> NodeLoop
+    NextNode2 --> NodeLoop
+    
+    NodeLoop -->|Düğüm kalmadı| CreateTable["Renklendirme tablosu oluştur:<br/>color_table = group_by_color(coloring)"]
+    
+    CreateTable --> ReturnResult["🔵 Dön: (coloring, colors_used + 1)"]
+    
+    ReturnResult --> End([🔴 Bitti])
+    
+    style Start fill:#90EE90,stroke:#006400,stroke-width:3px
+    style End fill:#FFB6C1,stroke:#8B0000,stroke-width:3px
+    style NodeLoop fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style NeighborLoop fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style CheckAvailable fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style CheckColored fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style UpdateMax fill:#87CEEB,stroke:#000080,stroke-width:2px
+    style Sort fill:#FFDAB9,stroke:#8B4513,stroke-width:2px
+    style AssignColor fill:#98FB98,stroke:#228B22,stroke-width:2px
+    style ReturnResult fill:#DDA0DD,stroke:#4B0082,stroke-width:2px
+```
+
+**Zaman Karmaşıklığı:** O(V²) - Sıralama ve renk bulma  
+**Alan Karmaşıklığı:** O(V)
+
+**Örnek Renklendirme:**
+```
+Renk 0 (🔴): [Düğüm 1, Düğüm 5, Düğüm 8]
+Renk 1 (🟢): [Düğüm 2, Düğüm 6]
+Renk 2 (🔵): [Düğüm 3, Düğüm 7]
+Renk 3 (🟡): [Düğüm 4]
+
+Toplam Kullanılan Renk: 4
+```
+
+---
+
+#### 3.1.8 Algoritma Karmaşıklıkları Karşılaştırma Tablosu
+
+| Algoritma | Zaman Karmaşıklığı | Alan Karmaşıklığı | En İyi Kullanım Senaryosu |
+|-----------|-------------------|------------------|---------------------------|
+| **BFS** | O(V + E) | O(V) | Ağırlıksız en kısa yol, seviye analizi |
+| **DFS** | O(V + E) | O(V) | Döngü tespiti, topolojik sıralama |
+| **Dijkstra** | O((V+E) log V) | O(V) | Pozitif ağırlıklı en kısa yol |
+| **A*** | O(E log V) | O(V) | Heuristik ile hızlı yol bulma |
+| **Connected Components** | O(V + E) | O(V) | Ağ parçalanması analizi |
+| **Degree Centrality** | O(V) | O(V) | Influencer tespiti |
+| **Welsh-Powell** | O(V²) | O(V) | Çizelgeleme, frekans atama |
+
+---
+
+### 3.2 Algoritma Detayları ve Kod Implementasyonları
+
+#### 3.2.1 Genişlik Öncelikli Arama (BFS - Breadth-First Search)
 
 **Temel Konsept:** BFS algoritması, başlangıç düğümünden başlayarak tüm erişilebilir düğümleri seviyelere göre ziyaret eder. Bir düğümün tüm komşuları, komşuların komşularından önce ziyaret edilir. Kuyruğu (queue) veri yapısını kullanan bu yöntem, ağdaki yapısal desenleri anlamak için kritik öneme sahiptir.
 
@@ -281,7 +841,7 @@ def bfs(graph, start):
 **Zaman Karmaşıklığı:** $O(V + E)$ - Her düğüm ve kenar bir kez ziyaret edilir  
 **Alan Karmaşıklığı:** $O(V)$ - Kuyruğun maksimum boyutu düğüm sayısıdır
 
-### 3.2 Derinlik Öncelikli Arama (DFS - Depth-First Search)
+#### 3.2.2 Derinlik Öncelikli Arama (DFS - Depth-First Search)
 
 **Temel Konsept:** DFS, bir düğümden başlayarak, bir yolun sonuna kadar derinlemesine ilerler, sonra geri dönüp diğer yolları araştırır. Yığını (stack) kullanır ve döngü tespiti, topolojik sıralama, güçlü bağlı bileşen bulma gibi görevlerde etkilidir.
 
@@ -323,7 +883,7 @@ def dfs(graph, start):
 **Zaman Karmaşıklığı:** $O(V + E)$ - BFS ile aynı  
 **Alan Karmaşıklığı:** $O(V)$ - Özyinelemeli çağrı yığını
 
-### 3.3 Dijkstra En Kısa Yol Algoritması
+#### 3.2.3 Dijkstra En Kısa Yol Algoritması
 
 **Temel Konsept:** Dijkstra algoritması, negatif olmayan ağırlıklara sahip kenarları olan bir grafda, başlangıç düğümünden diğer tüm düğümlere olan en kısa yolları bulur. Açgözlü bir algoritma olup, her adımda henüz keşfedilmemiş en yakın düğümü seçer.
 
@@ -385,7 +945,7 @@ def dijkstra(graph, start_id):
 **Zaman Karmaşıklığı:** $O((V + E) \log V)$ - Örneğin 10.000 düğümlü ağda ~100ms  
 **Ağırlık Kısıtlaması:** Tüm ağırlıklar ≥ 0 olmalı
 
-### 3.4 A* Algoritması (Heuristik Tabanlı Arama)
+#### 3.2.4 A* Algoritması (Heuristik Tabanlı Arama)
 
 **Temel Konsept:** A* algoritması, Dijkstra'nın bir uzantısıdır. Hedef düğüme doğru hareket etmeyi tercih ederek arama alanını azaltır. Heuristik fonksiyonu kullanarak en umut verici yolları önceliklendirir.
 
@@ -444,7 +1004,7 @@ def astar(graph, start, goal):
 **Zaman Karmaşıklığı:** Heuristik kalitesine bağlıdır, orta durumda $O(E \log V)$  
 **Optimality:** Kabul edilebilir heuristik ile optimal çözüm garantisi vardır
 
-### 3.5 Bağlı Bileşenler (Connected Components)
+#### 3.2.5 Bağlı Bileşenler (Connected Components)
 
 **Temel Konsept:** Bir grafta bağlı bileşen, herhangi iki düğüme arasında bir yol olduğu maksimal düğüm alt kümesidir. Bu algoritma, ağdaki izole grupları veya cluster'ları bulur.
 
@@ -495,7 +1055,7 @@ def connected_components(graph):
 **Zaman Karmaşıklığı:** $O(V + E)$ - Tüm grafı bir kez ziyaret eder  
 **Kullanım:** Ağ parçalanması analizi, bölüklü ağlar
 
-### 3.6 Welsh-Powell Grafik Renklendirme Algoritması
+#### 3.2.6 Welsh-Powell Grafik Renklendirme Algoritması
 
 **Temel Konsept:** Welsh-Powell algoritması, bir grafiği minimum sayıda renkle renklendirerek, hiçbir iki komşu düğünün aynı renge sahip olmadığı garanti eder. Açgözlü algoritma olup en yüksek dereceli düğümlerden başlar.
 
@@ -825,52 +1385,9 @@ class GraphLoader:
 
 ## 5. Kullanıcı Arayüzü (UI)
 
-### 5.1 Ana Bileşenler
-
-```mermaid
-graph LR
-    A["Canvas<br/>Grafik Görüntüleme"] 
-    B["Sidebar<br/>Algoritma Kontrolleri"]
-    C["Status Bar<br/>Bilgi Gösterimi"]
-    D["Popup Dialogs<br/>Node/Edge Yönetimi"]
-    
-    A ---|İnteraktif Etkileşim| B
-    B ---|Algoritma Sonuçları| C
-    B ---|Veri Girişi| D
-```
-
-### 5.2 Ana Uygulamayı Çalıştırma
-
-```bash
-# Kurulum
-pip install -r requirements.txt
-
-# Uygulamayı başlat
-python src/ui/app.py
-```
-
-### 5.3 Temel İşlemler
-
-| İşlem | Açıklama |
-|-------|----------|
-| Sol Tık Tuval | Yeni düğüm oluştur |
-| Sol Tık Düğüm 1 → Düğüm 2 | Kenar oluştur |
-| Çift Tık Düğüm | Düğüm özelliklerini düzenle |
-| Sağ Tık Düğüm | Düğümü sil |
-| Sağ Tık Kenar | Kenarı sil |
-
----
-
-## 6. Veri Yükleme ve İhraç
-
----
-
-## 5. Kullanıcı Arayüzü (UI)
-
 ### 5.1 Mimari Tasarım
 
 CustomTkinter ile oluşturulan modern arayüz, sosyal ağ analizini sezgisel hale getirir:
-
 ```mermaid
 graph LR
     A["Canvas<br/>Grafik Görüntüleme"] 
@@ -950,7 +1467,6 @@ graph LR
 - **Yazı Tipi:** System default (14pt normal, 12pt küçük)
 
 ### 5.5 Uygulamayı Başlatma
-
 ```bash
 # Adım 1: Bağımlılıkları yükle
 pip install -r requirements.txt
@@ -966,29 +1482,32 @@ python src/ui/app.py --load-sample-medium
 ### 5.6 Örnek Senaryo: Sosyal Ağ Analizi
 
 1. **Grafik Yükleme:**
-   ```python
+```python
    # Uygulamayı aç
    # Menüden "Dosya → Aç" tıkla
    # data/sample_medium.csv seç
    # 50 düğümlü sosyal ağ yüklenir
-   ```
+```
 
 2. **Algoritma Çalıştırma:**
-   ```
+```
    Sidebar'dan:
    - Algoritma: "Dijkstra En Kısa Yol"
    - Başlangıç Düğümü: 1
    - Hedef Düğüm: 25
    - "Çalıştır" tıkla
-   ```
+```
 
 3. **Sonuç Görüntüleme:**
-   ```
+```
    Canvas'ta:
    - Düğüm 1 → 25'e giden yol yeşille renklenir
    - Status Bar'da: "3 adım, 0.45ms"
    - Uyarı: "Toplam mesafe: 2.85"
-   ```
+```
+
+---
+
 
 ---
 
@@ -1551,7 +2070,38 @@ def test_export_import_json_consistency():
 - [Graph Online](https://graphonline.ru/) - İnteraktif grafik editörü
 
 ---
-**Lisans:** MIT License
+## 12. Sık Sorulan Sorular (FAQ)
+
+### Genel Sorular
+
+**S: Negatif ağırlıklı kenarlar destekleniyor mu?**  
+C: Hayır, Dijkstra ve A* algoritmaları negatif ağırlıkları desteklemez. Bellman-Ford algoritmasını kullanmanız gerekir (gelecek sürümlerde eklenecek).
+
+**S: Maksimum kaç düğüm destekleniyor?**  
+C: Teorik limit yok, ancak 1000+ düğümde görselleştirme yavaşlayabilir. Performans için 500 düğüm altı önerilir.
+
+**S: Yönlü grafikleri destekliyor musunuz?**  
+C: Şu anda sadece yönsüz grafikler destekleniyor. v2.0'da yönlü grafik desteği eklenecek.
+
+## 13. Lisans
+
+Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
+
+## 14. Katkıda Bulunma
+
+Katkılarınızı bekliyoruz! Lütfen şu adımları izleyin:
+
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/AmazingFeature`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Add some AmazingFeature'`)
+4. Branch'inizi push edin (`git push origin feature/AmazingFeature`)
+5. Pull Request açın
+
+### Kod Standartları
+- PEP 8 stil kılavuzunu takip edin
+- Her fonksiyon için docstring yazın
+- Yeni özellikler için test ekleyin
+- Type hints kullanın (Python 3.10+)
 
 
 
